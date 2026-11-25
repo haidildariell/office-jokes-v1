@@ -1,28 +1,44 @@
 #!/usr/bin/env python3
-"""One-line office joke entry for make.fun.
+"""One-line office joke entry writer.
 
-Writes a single-line office joke to /output/entry.txt.
-Deterministic, no network, no dependencies.
+Builds the entry text, validates it against the competition gate
+(1-199 characters, exactly one line, non-blank), and writes it to
+/output/entry.txt.
 """
 
 import os
 
-JOKE = (
-    "I hit reply-all by accident once, and now my inbox holds "
-    "47 apologies, one resignation, and a calendar invite titled "
-    "Please Stop Replying All."
-)
+ENTRY_SETUP = "I hit reply-all by accident once, and now my inbox holds "
+ENTRY_PUNCH = "47 apologies, one resignation, "
+ENTRY_TAG = "and a calendar invite titled Please Stop Replying All."
 
 
-def main() -> None:
-    text = JOKE.strip()
-    # Gate checks: non-blank, single line, 1-199 characters.
-    assert text, "joke must not be blank"
-    assert "\n" not in text and "\r" not in text, "joke must be a single line"
-    assert 1 <= len(text) <= 199, f"joke must be 1-199 chars, got {len(text)}"
+def build_entry_text():
+    """Assemble the entry from its three beats: setup, punch, tag."""
+    return ENTRY_SETUP + ENTRY_PUNCH + ENTRY_TAG
+
+
+def validate_entry(text):
+    """Check the gate: 1-199 chars, a single line, not blank.
+
+    Raises ValueError on the first failing check so a bad entry
+    never reaches /output/entry.txt.
+    """
+    if not text or not text.strip():
+        raise ValueError("entry must not be blank")
+    if "\n" in text or "\r" in text:
+        raise ValueError("entry must be a single line")
+    if not 1 <= len(text) <= 199:
+        raise ValueError("entry must be 1-199 characters, got %d" % len(text))
+    return text
+
+
+def main():
+    text = validate_entry(build_entry_text())
     os.makedirs("/output", exist_ok=True)
     with open("/output/entry.txt", "w", encoding="utf-8") as f:
         f.write(text + "\n")
+    print("wrote /output/entry.txt (%d chars)" % len(text))
 
 
 if __name__ == "__main__":
